@@ -1,0 +1,48 @@
+# https://dagshub.com/Ultralytics/ultralytics/src/795b95bdcb22d788c1a062b47d1fe871d768c806/examples/YOLOv8-ONNXRuntime-CPP
+# https://medium.com/@shahriar.rezghi.sh/using-yolo-in-c-55d55419a947
+# https://medium.com/@psopen11/complete-guide-to-gpu-accelerated-yolov8-segmentation-in-c-via-libtorch-c-dlls-a0e3e6029d82
+# https://github.com/RsGoksel/Cpp-Object-Detection-Yolov5-OpenCV/blob/main/Yolov5_Video_Object_Detection/Models/classes.txt
+# https://docs.ultralytics.com/yolov5/tutorials/model_export/#exported-model-usage-examples
+# python3 -m onnxsim yolov5s.onnx yolov5s_simplified.onnx
+
+cmake_minimum_required( VERSION 3.6 )
+
+# Create Project
+project( solution )
+add_executable( project  "main_threads.cpp")
+
+# Set StartUp Project
+# set_property( DIRECTORY PROPERTY VS_STARTUP_PROJECT "project" )
+
+# Find Package
+set( OpenCV_DIR "D:/Downloads/opencv/build" )
+set(OpenCV_LIB_DIR "D:/Downloads/opencv/build/x64/vc16/bin/")
+option( OpenCV_STATIC OFF)
+find_package( OpenCV REQUIRED )
+
+# Set Static Link Runtime Library
+if( OpenCV_STATIC )
+  foreach( flag_var
+           CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+           CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
+           CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+           CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO )
+    if( ${flag_var} MATCHES "/MD" )
+      string( REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}" )
+    endif()
+  endforeach()
+endif()
+
+if( OpenCV_FOUND )
+  # Additional Include Directories
+  include_directories( ${OpenCV_INCLUDE_DIRS} )
+  message( STATUS " OpenCV_INCLUDE_DIRS : ${OpenCV_INCLUDE_DIRS}")
+
+  # Additional Library Directories
+  link_directories( ${OpenCV_LIB_DIR} )
+  message(STATUS "OpenCV_LIB_DIR  :  ${OpenCV_LIB_DIR}")
+
+  # Additional Dependencies
+  target_link_libraries( project ${OpenCV_LIBS} )
+  message( STATUS "OpenCV_LIBS  :  ${OpenCV_LIBS}")
+endif()
