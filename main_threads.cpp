@@ -33,7 +33,7 @@ struct Detection
 
 
 class VideoCapture {
-public:
+    public:
     VideoCapture(const std::string& camera_link)
         : camera_link(camera_link), stop_thread(false) {
         camera_open();
@@ -62,61 +62,61 @@ public:
         return cv::Mat();
     }
 
-private:
-    std::string camera_link;
-    cv::VideoCapture cap;
-    std::queue<cv::Mat> q;
-    std::mutex mtx;
-    std::condition_variable cv;
-    std::thread reader_thread;
-    bool stop_thread;
+    private:
+        std::string camera_link;
+        cv::VideoCapture cap;
+        std::queue<cv::Mat> q;
+        std::mutex mtx;
+        std::condition_variable cv;
+        std::thread reader_thread;
+        bool stop_thread;
 
-    void camera_open() {
-        cap.open(camera_link);
-        if (!cap.isOpened()) {
-            throw std::runtime_error("Error opening video stream or file");
-        }
-        else {
-            std::cout << "Camera opened " << std::endl;
-        }
-    }
-
-    void _reader() {
-        try {
-            while (!stop_thread) {
-                if (!cap.isOpened()) {
-                    cap.release();
-                    camera_open();
-                    continue;
-                }
-
-                cv::Mat frame;
-                bool ret = cap.read(frame);
-
-                if (!ret) {
-                    cap.release();
-                    camera_open();
-                    continue;
-                }
-
-                cv::resize(frame, frame, cv::Size(640, 480));
-
-                //std::unique_lock<std::mutex> lock(mtx);
-                if (q.size() < 5) {
-                    q.push(frame);
-                }
-
-                cv.notify_all();
-                
+        void camera_open() {
+            cap.open(camera_link);
+            if (!cap.isOpened()) {
+                throw std::runtime_error("Error opening video stream or file");
+            }
+            else {
+                std::cout << "Camera opened " << std::endl;
             }
         }
-        catch (const std::exception& e) {
-            if (cap.isOpened()) {
-                cap.release();
+
+        void _reader() {
+            try {
+                while (!stop_thread) {
+                    if (!cap.isOpened()) {
+                        cap.release();
+                        camera_open();
+                        continue;
+                    }
+
+                    cv::Mat frame;
+                    bool ret = cap.read(frame);
+
+                    if (!ret) {
+                        cap.release();
+                        camera_open();
+                        continue;
+                    }
+
+                    cv::resize(frame, frame, cv::Size(640, 480));
+
+                    //std::unique_lock<std::mutex> lock(mtx);
+                    if (q.size() < 5) {
+                        q.push(frame);
+                    }
+
+                    cv.notify_all();
+                    
+                }
             }
-            std::cerr << "Video Capture error: " << e.what() << std::endl;
+            catch (const std::exception& e) {
+                if (cap.isOpened()) {
+                    cap.release();
+                }
+                std::cerr << "Video Capture error: " << e.what() << std::endl;
+            }
         }
-    }
 };
 
 
